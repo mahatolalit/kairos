@@ -21,12 +21,40 @@ export const getMessages = async (req, res) => {
     const { id: userToChatId } = req.params;
     const myId = req.user._id;
 
-    const messages = await Message.find({
-      $or: [
-        { senderId: myId, receiverId: userToChatId },
-        { senderId: userToChatId, receiverId: myId },
-      ],
-    });
+    // Optional keyset pagination
+    const limit = Math.min(Number(req.query.limit) || 0, 200); // 0 = no limit (return all)
+    const beforeId = req.query.beforeId; // Message _id string for older pages
+
+    // Build stable conversation key
+    const a = String(myId);
+    const b = String(userToChatId);
+    const conversationKey = a < b ? `${a}_${b}` : `${b}_${a}`;
+
+    const filter = { conversationKey };
+    if (beforeId) filter._id = { $lt: beforeId };
+
+    let query = Message.find(filter);
+    if (limit > 0) query = query.sort({ _id: -1 }).limit(limit);
+
+    // Narrow projection and lean to avoid hydration overhead
+    const projection = "senderId receiverId text image createdAt";
+    let messages = await query.select(projection).lean();
+
+    // Fallback to legacy $or path if no docs (pre-backfill safety)
+    if ((!messages || messages.length === 0) && !beforeId) {
+      const legacyFilter = {
+        $or: [
+          { senderId: myId, receiverId: userToChatId },
+          { senderId: userToChatId, receiverId: myId },
+        ],
+      };
+      let legacyQuery = Message.find(legacyFilter);
+      if (limit > 0) legacyQuery = legacyQuery.sort({ _id: -1 }).limit(limit);
+      messages = await legacyQuery.select(projection).lean();
+    }
+
+    // If paginating newest-first, return chronological order for the UI
+    if (limit > 0) messages = messages.slice().reverse();
 
     res.status(200).json(messages);
   } catch (error) {
@@ -59,7 +87,14 @@ export const sendMessage = async (req, res) => {
 
     const receiverSocketId = getReceiverSocketId(receiverId);
     if (receiverSocketId) {
-      io.to(receiverSocketId).emit("newMessage", newMessage);
+      io.to(receiverSocketId).emit("newMessage", {
+        _id: newMessage._id,
+        senderId: newMessage.senderId,
+        receiverId: newMessage.receiverId,
+        text: newMessage.text,
+        image: newMessage.image,
+        createdAt: newMessage.createdAt,
+      });
     }
 
     res.status(201).json(newMessage);
