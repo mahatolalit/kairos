@@ -1,5 +1,5 @@
 {
-  "name": "prodigy_fs_04",
+  "name": "kairos",
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
@@ -8,14 +8,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/mahatolalit/PRODIGY_FS_04.git"
+    "url": "git+https://github.com/mahatolalit/kairos.git"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/mahatolalit/PRODIGY_FS_04/issues"
+    "url": "https://github.com/mahatolalit/kairos/issues"
   },
-  "homepage": "https://github.com/mahatolalit/PRODIGY_FS_04#readme",
+  "homepage": "https://github.com/mahatolalit/kairos#readme",
   "description": ""
 }
