@@ -2,6 +2,7 @@ import { useRef, useState } from "react";
 import { Image, Send, X } from "lucide-react";
 import toast from "react-hot-toast";
 import { useChatStore } from "../store/useChatStore";
+import { axiosInstance } from "../lib/axios";
 
 export default function MessageInput() {
   const fileRef = useRef(null);
@@ -18,8 +19,8 @@ export default function MessageInput() {
     if (!f.type.startsWith("image/")) {
       toast.error("Only images allowed"); return;
     }
-    if (f.size > 5 * 1024 * 1024) {       // 5 MB gate
-      toast.error("Max 5 MB"); return;
+    if (f.size > 5 * 1024 * 1024) {       // 5 MB gate
+      toast.error("Max 5 MB"); return;
     }
     setFile(f);
     const reader = new FileReader();
@@ -41,8 +42,7 @@ export default function MessageInput() {
       let imageUrl = null;
 
       if (file) {
-        const sigRes = await fetch("/api/cloudinary/sign");
-        if (!sigRes.ok) throw new Error("Could not get signature");
+        const sigRes = await axiosInstance.get("/cloudinary/sign");
         const {
           signature,
           timestamp,
@@ -50,7 +50,7 @@ export default function MessageInput() {
           cloudName,
           uploadPreset,
           folder,
-        } = await sigRes.json();
+        } = sigRes.data;
 
         const fd = new FormData();
         fd.append("file", file);
