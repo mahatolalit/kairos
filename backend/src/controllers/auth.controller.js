@@ -105,12 +105,12 @@ export const updateProfile = async (req, res) => {
       userId,
       { profilePic: uploadResponse.secure_url },
       { new: true }
-    );
+    ).select("-password");
 
     res.status(200).json(updatedUser);
   } catch (error) {
     console.log("error in update profile:", error);
-    res.status(500).json({ message: "Internal server error" });
+    res.status(500).json({ message: error.message || "Failed to upload profile picture" });
   }
 };
 
