@@ -35,12 +35,12 @@ const SignUpPage = () => {
   };
 
   return (
-    <div className="min-h-screen grid lg:grid-cols-2">
+    <div className="min-h-[calc(100vh-4rem)] grid lg:grid-cols-2 mt-16">
       {/* left side */}
-      <div className="flex flex-col justify-center items-center p-6 sm:p-12">
-        <div className="w-full max-w-md space-y-8">
+      <div className="flex flex-col justify-center items-center p-4 sm:p-8">
+        <div className="w-full max-w-sm space-y-4">
           {/* LOGO */}
-          <div className="text-center mb-8">
+          <div className="text-center mb-2">
             <div className="flex flex-col items-center gap-2 group">
               <div
                 className="size-12 rounded-xl bg-primary/10 flex items-center justify-center 
@@ -53,7 +53,7 @@ const SignUpPage = () => {
             </div>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-2">
             <div className="form-control">
               <label className="label">
                 <span className="label-text font-medium">Full Name</span>
