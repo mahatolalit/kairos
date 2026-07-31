@@ -115,7 +115,7 @@ export default function MessageInput() {
           {/* open picker */}
           <button type="button"
                   onClick={() => fileRef.current?.click()}
-                  className={`hidden sm:flex btn btn-circle ${
+                  className={`btn btn-sm sm:btn-md btn-circle ${
                     preview ? "text-emerald-500" : "text-zinc-400"
                   }`}>
             <Image size={20}/>
@@ -124,7 +124,7 @@ export default function MessageInput() {
 
         <button type="submit"
                 disabled={!text.trim() && !file}
-                className="btn btn-sm btn-circle">
+                className="btn btn-sm sm:btn-md btn-circle">
           <Send size={22}/>
         </button>
       </form>
