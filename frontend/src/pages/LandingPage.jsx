@@ -10,8 +10,8 @@ export default function LandingPage() {
       <div className="absolute bottom-[-20%] left-[20%] w-96 h-96 bg-accent rounded-full mix-blend-multiply filter blur-[128px] opacity-20 animate-blob animation-delay-4000"></div>
 
       <div className="container mx-auto px-4 lg:px-24 pt-32 pb-20 relative z-10">
-        <div className="flex flex-col lg:flex-row items-center justify-between gap-12">
-          
+        <div className="flex flex-col lg:flex-row-reverse items-center justify-between gap-20">
+
           {/* Left Text Section */}
           <div className="lg:w-1/2 flex flex-col items-center lg:items-start text-center lg:text-left space-y-8">
             <h1 className="text-5xl lg:text-7xl font-extrabold tracking-tight leading-tight">
@@ -20,11 +20,11 @@ export default function LandingPage() {
                 Real-Time
               </span>
             </h1>
-            
+
             <p className="text-lg text-base-content/70 max-w-lg">
               Kairos brings your conversations to life with lightning-fast messaging, secure connections, and beautiful themes designed just for you.
             </p>
-            
+
             <div className="flex flex-col sm:flex-row gap-4 pt-4">
               <Link
                 to="/signup"
@@ -39,7 +39,7 @@ export default function LandingPage() {
                 Login
               </Link>
             </div>
-            
+
             {/* Feature Badges */}
             <div className="flex flex-wrap justify-center lg:justify-start gap-6 pt-8">
               <div className="flex items-center gap-2">
@@ -72,7 +72,7 @@ export default function LandingPage() {
                 className="w-full h-auto rounded-2xl object-cover"
               />
             </div>
-              
+
             {/* Floating glassmorphism cards */}
             <div className="absolute -left-6 top-1/4 p-4 rounded-2xl bg-base-100/70 backdrop-blur-md border border-white/10 shadow-xl hidden md:flex items-center gap-3 animate-bounce shadow-primary/10" style={{ animationDuration: '3s' }}>
               <div className="size-10 rounded-full bg-gradient-to-br from-primary to-secondary p-[2px]">
