@@ -9,9 +9,12 @@ router.get("/sign",protectRoute, async (req, res) => {
     const timestamp = Math.floor(Date.now() / 1000);
     const paramsToSign = {
       timestamp,
-      upload_preset: process.env.CLOUDINARY_UPLOAD_PRESET,
-      folder: "chat-images",                
+      folder: "chat-images",
     };
+    if (process.env.CLOUDINARY_UPLOAD_PRESET) {
+      paramsToSign.upload_preset = process.env.CLOUDINARY_UPLOAD_PRESET;
+    }
+
     const signature = cloudinary.utils.api_sign_request(
       paramsToSign,
       process.env.CLOUDINARY_API_SECRET
@@ -22,7 +25,7 @@ router.get("/sign",protectRoute, async (req, res) => {
       timestamp,
       apiKey: process.env.CLOUDINARY_API_KEY,
       cloudName: process.env.CLOUDINARY_CLOUD_NAME,
-      uploadPreset: process.env.CLOUDINARY_UPLOAD_PRESET,
+      uploadPreset: process.env.CLOUDINARY_UPLOAD_PRESET || "",
       folder: "chat-images",
     });
   } catch (err) {
