@@ -21,6 +21,22 @@ export const getMessages = async (req, res) => {
     const { id: userToChatId } = req.params;
     const myId = req.user._id;
 
+    // Mark unread messages sent by userToChatId to myId as seen
+    const updatedResult = await Message.updateMany(
+      { senderId: userToChatId, receiverId: myId, isSeen: false },
+      { $set: { isSeen: true, isDelivered: true } }
+    );
+
+    if (updatedResult.modifiedCount > 0) {
+      const senderSocketId = getReceiverSocketId(userToChatId);
+      if (senderSocketId) {
+        io.to(senderSocketId).emit("messagesSeen", {
+          senderId: userToChatId,
+          receiverId: myId,
+        });
+      }
+    }
+
     const messages = await Message.find({
       $or: [
         { senderId: myId, receiverId: userToChatId },
@@ -41,23 +57,29 @@ export const sendMessage = async (req, res) => {
     const { id: receiverId } = req.params;
     const senderId = req.user._id;
 
-    let imageUrl;
+    let imageUrl = null;
     if (image) {
-      // Upload base64 image to cloudinary
-      const uploadResponse = await cloudinary.uploader.upload(image);
-      imageUrl = uploadResponse.secure_url;
+      if (typeof image === "string" && (image.startsWith("http://") || image.startsWith("https://"))) {
+        imageUrl = image;
+      } else {
+        const uploadResponse = await cloudinary.uploader.upload(image);
+        imageUrl = uploadResponse.secure_url;
+      }
     }
+
+    const receiverSocketId = getReceiverSocketId(receiverId);
 
     const newMessage = new Message({
       senderId,
       receiverId,
       text,
       image: imageUrl,
+      isDelivered: !!receiverSocketId,
+      isSeen: false,
     });
 
     await newMessage.save();
 
-    const receiverSocketId = getReceiverSocketId(receiverId);
     if (receiverSocketId) {
       io.to(receiverSocketId).emit("newMessage", newMessage);
     }
@@ -68,3 +90,28 @@ export const sendMessage = async (req, res) => {
     res.status(500).json({ error: "Internal server error" });
   }
 };
+
+export const markMessagesAsSeen = async (req, res) => {
+  try {
+    const { id: userToChatId } = req.params;
+    const myId = req.user._id;
+
+    await Message.updateMany(
+      { senderId: userToChatId, receiverId: myId, isSeen: false },
+      { $set: { isSeen: true, isDelivered: true } }
+    );
+
+    const senderSocketId = getReceiverSocketId(userToChatId);
+    if (senderSocketId) {
+      io.to(senderSocketId).emit("messagesSeen", {
+        senderId: userToChatId,
+        receiverId: myId,
+      });
+    }
+
+    res.status(200).json({ success: true });
+  } catch (error) {
+    console.log("Error in markMessagesAsSeen controller: ", error.message);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
