@@ -129,7 +129,7 @@ const ChatContainer = () => {
                   </span>
                 </div>
               )}
-              <div className={`chat ${isSentByMe ? "chat-end" : "chat-start"} !py-0 min-h-0`}>
+              <div className={`chat ${isSentByMe ? "chat-end animate-chat-sender" : "chat-start animate-chat-receiver"} !py-0 min-h-0`}>
                 <div className="chat-image avatar">
                   <div className={`size-8 rounded-full border ${isSameSenderAsPrev ? "opacity-0 invisible" : ""}`}>
                     <img
