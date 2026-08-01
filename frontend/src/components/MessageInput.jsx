@@ -2,7 +2,6 @@ import { useRef, useState } from "react";
 import { Image, Send, X } from "lucide-react";
 import toast from "react-hot-toast";
 import { useChatStore } from "../store/useChatStore";
-import { axiosInstance } from "../lib/axios";
 
 export default function MessageInput() {
   const fileRef = useRef(null);
@@ -34,48 +33,18 @@ export default function MessageInput() {
   };
 
   /* ------------- main send handler ------------- */
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
     if (!text.trim() && !file) return;
 
-    try {
-      let imageUrl = null;
+    sendMessage({
+      text: text.trim(),
+      file,
+      preview,
+    });
 
-      if (file) {
-        const sigRes = await axiosInstance.get("/cloudinary/sign");
-        const {
-          signature,
-          timestamp,
-          apiKey,
-          cloudName,
-          uploadPreset,
-          folder,
-        } = sigRes.data;
-
-        const fd = new FormData();
-        fd.append("file", file);
-        fd.append("api_key", apiKey);
-        fd.append("timestamp", timestamp);
-        fd.append("signature", signature);
-        fd.append("folder", folder);
-        fd.append("upload_preset", uploadPreset);
-
-        const upRes = await fetch(
-          `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
-          { method: "POST", body: fd }
-        );
-        if (!upRes.ok) throw new Error("Upload failed");
-        const upData = await upRes.json();
-        imageUrl = upData.secure_url;
-      }
-
-      await sendMessage({ text: text.trim(), image: imageUrl });
-
-      setText(""); resetImage();
-    } catch (err) {
-      console.error(err);
-      toast.error("Send failed");
-    }
+    setText("");
+    resetImage();
   };
 
   return (
