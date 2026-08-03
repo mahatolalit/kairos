@@ -2,6 +2,7 @@ import { create } from "zustand";
 import toast from "react-hot-toast";
 import { axiosInstance } from "../lib/axios";
 import { useAuthStore } from "./useAuthStore";
+import { showNotification } from "../lib/utils";
 
 
 export const useChatStore = create((set, get) => ({
@@ -38,6 +39,12 @@ export const useChatStore = create((set, get) => ({
   markMessagesAsSeen: async (userId) => {
     try {
       await axiosInstance.put(`/messages/mark-seen/${userId}`);
+      set((state) => {
+        const newUsers = state.users.map((u) =>
+          u._id === userId ? { ...u, unreadCount: 0 } : u
+        );
+        return { users: newUsers };
+      });
     } catch (error) {
       console.error("Error marking messages as seen:", error);
     }
@@ -68,7 +75,15 @@ export const useChatStore = create((set, get) => ({
       rawPreview: imagePreview,
     };
 
-    set({ messages: [...messages, tempMessage] });
+    set((state) => {
+      const newUsers = [...state.users];
+      const userIndex = newUsers.findIndex((u) => u._id === selectedUser._id);
+      if (userIndex > -1) {
+        const [user] = newUsers.splice(userIndex, 1);
+        newUsers.unshift(user);
+      }
+      return { messages: [...state.messages, tempMessage], users: newUsers };
+    });
 
     try {
       const res = await axiosInstance.post(`/messages/send/${selectedUser._id}`, {
@@ -154,16 +169,37 @@ export const useChatStore = create((set, get) => ({
     socket.off("messagesSeen");
 
     socket.on("newMessage", (newMessage) => {
-      const selectedUser = get().selectedUser;
+      const { selectedUser, messages, users } = get();
+
+      // Rearrange users so the sender moves to the top
+      let newUsers = [...users];
+      const userIndex = newUsers.findIndex((u) => u._id === newMessage.senderId);
+      if (userIndex > -1) {
+        const [user] = newUsers.splice(userIndex, 1);
+        newUsers.unshift(user);
+      }
+
       const isMessageSentFromSelectedUser =
         selectedUser && String(newMessage.senderId) === String(selectedUser._id);
 
       if (!isMessageSentFromSelectedUser) {
-        const sender = get().users.find((u) => String(u._id) === String(newMessage.senderId));
+        const sender = users.find((u) => String(u._id) === String(newMessage.senderId));
+        if (sender) {
+          sender.unreadCount = (sender.unreadCount || 0) + 1;
+        }
+        set({ users: newUsers });
+
         if (sender) {
           toast(`New message from ${sender.fullName}`, { icon: "💬" });
+          showNotification(`New message from ${sender.fullName}`, {
+            body: newMessage.text || "Sent an attachment",
+            icon: sender.profilePic || "/avatar.png"
+          });
         } else {
           toast("New message received", { icon: "💬" });
+          showNotification("New message received", {
+            body: newMessage.text || "Sent an attachment"
+          });
         }
         return;
       }
@@ -171,9 +207,13 @@ export const useChatStore = create((set, get) => ({
       const isAlreadyAdded = messages.some(
         (m) => String(m._id) === String(newMessage._id)
       );
-      if (isAlreadyAdded) return;
+      if (isAlreadyAdded) {
+        set({ users: newUsers });
+        return;
+      }
 
       set({
+        users: newUsers,
         messages: [...messages, newMessage],
       });
 
