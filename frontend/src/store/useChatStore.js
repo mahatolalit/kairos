@@ -3,50 +3,6 @@ import toast from "react-hot-toast";
 import { axiosInstance } from "../lib/axios";
 import { useAuthStore } from "./useAuthStore";
 
-const uploadImageToCloudinary = async (file) => {
-  if (!file) return null;
-  if (typeof file === "string" && file.startsWith("http")) return file;
-
-  // Sanitize filename to prevent Cloudinary 'invalid public_id' error on non-ASCII/Unicode filenames
-  let cleanFile = file;
-  if (file instanceof File) {
-    const ext = file.name.split(".").pop();
-    const safeBaseName = file.name
-      .replace(/\.[^/.]+$/, "")
-      .replace(/[^\w-]/g, "_")
-      .replace(/^_+/, "");
-
-    const safeFileName = `${safeBaseName || "image_" + Date.now()}.${ext || "png"}`;
-    cleanFile = new File([file], safeFileName, { type: file.type || "image/png" });
-  }
-
-  const sigRes = await axiosInstance.get("/cloudinary/sign");
-  const { signature, timestamp, apiKey, cloudName, uploadPreset, folder } = sigRes.data;
-
-  const fd = new FormData();
-  fd.append("file", cleanFile);
-  fd.append("api_key", apiKey);
-  fd.append("timestamp", timestamp);
-  fd.append("signature", signature);
-  fd.append("folder", folder);
-  if (uploadPreset) {
-    fd.append("upload_preset", uploadPreset);
-  }
-
-  const upRes = await fetch(
-    `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
-    { method: "POST", body: fd }
-  );
-
-  if (!upRes.ok) {
-    const errorData = await upRes.json().catch(() => ({}));
-    console.error("Cloudinary client upload error:", errorData);
-    throw new Error(errorData.error?.message || "Cloudinary upload failed");
-  }
-
-  const upData = await upRes.json();
-  return upData.secure_url;
-};
 
 export const useChatStore = create((set, get) => ({
   messages: [],
@@ -115,14 +71,9 @@ export const useChatStore = create((set, get) => ({
     set({ messages: [...messages, tempMessage] });
 
     try {
-      let imageUrl = null;
-      if (messageData.file) {
-        imageUrl = await uploadImageToCloudinary(messageData.file);
-      }
-
       const res = await axiosInstance.post(`/messages/send/${selectedUser._id}`, {
         text: messageData.text,
-        image: imageUrl,
+        image: imagePreview,
       });
 
       const updatedMessages = get().messages.map((msg) =>
@@ -163,14 +114,9 @@ export const useChatStore = create((set, get) => ({
     });
 
     try {
-      let imageUrl = failedMessage.image;
-      if (failedMessage.rawFile && typeof failedMessage.rawFile !== "string") {
-        imageUrl = await uploadImageToCloudinary(failedMessage.rawFile);
-      }
-
       const res = await axiosInstance.post(`/messages/send/${selectedUser._id}`, {
         text: failedMessage.text,
-        image: imageUrl,
+        image: failedMessage.rawPreview || failedMessage.image,
       });
 
       set({
@@ -208,12 +154,19 @@ export const useChatStore = create((set, get) => ({
     socket.off("messagesSeen");
 
     socket.on("newMessage", (newMessage) => {
-      const { selectedUser, messages } = get();
-      if (!selectedUser) return;
-
+      const selectedUser = get().selectedUser;
       const isMessageSentFromSelectedUser =
-        String(newMessage.senderId) === String(selectedUser._id);
-      if (!isMessageSentFromSelectedUser) return;
+        selectedUser && String(newMessage.senderId) === String(selectedUser._id);
+
+      if (!isMessageSentFromSelectedUser) {
+        const sender = get().users.find((u) => String(u._id) === String(newMessage.senderId));
+        if (sender) {
+          toast(`New message from ${sender.fullName}`, { icon: "💬" });
+        } else {
+          toast("New message received", { icon: "💬" });
+        }
+        return;
+      }
 
       const isAlreadyAdded = messages.some(
         (m) => String(m._id) === String(newMessage._id)

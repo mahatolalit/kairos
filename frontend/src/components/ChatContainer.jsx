@@ -27,11 +27,7 @@ const ChatContainer = () => {
       getMessages(selectedUser._id);
       markMessagesAsSeen(selectedUser._id);
     }
-
-    subscribeToMessages();
-
-    return () => unsubscribeFromMessages();
-  }, [selectedUser._id, getMessages, markMessagesAsSeen, subscribeToMessages, unsubscribeFromMessages]);
+  }, [selectedUser?._id, getMessages, markMessagesAsSeen]);
 
   useEffect(() => {
     if (messageEndRef.current && messages) {

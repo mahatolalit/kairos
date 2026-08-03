@@ -7,8 +7,6 @@ import { connectDB } from "./lib/db.js";
 import authRoutes from "./routes/auth.route.js";
 import messageRoutes from "./routes/message.route.js";
 import { app, server } from "./lib/socket.js";
-import cloudinaryRoute from "./routes/cloudinary.route.js";
-
 
 import fs from "fs";
 
@@ -33,8 +31,6 @@ app.use(
 app.use(cookieParser());
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ limit: "10mb", extended: true }));
-app.use("/api/cloudinary", cloudinaryRoute);
-
 app.use("/api/auth", authRoutes);
 app.use("/api/messages", messageRoutes);
 
