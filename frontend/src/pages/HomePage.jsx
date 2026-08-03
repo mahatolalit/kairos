@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { useChatStore } from "../store/useChatStore";
+import { useAuthStore } from "../store/useAuthStore";
 
 import Sidebar from "../components/Sidebar";
 import NoChatSelected from "../components/NoChatSelected";
@@ -7,11 +8,14 @@ import ChatContainer from "../components/ChatContainer";
 
 const HomePage = () => {
   const { selectedUser, subscribeToMessages, unsubscribeFromMessages } = useChatStore();
+  const { socket } = useAuthStore();
 
   useEffect(() => {
-    subscribeToMessages();
+    if (socket) {
+      subscribeToMessages();
+    }
     return () => unsubscribeFromMessages();
-  }, [subscribeToMessages, unsubscribeFromMessages]);
+  }, [subscribeToMessages, unsubscribeFromMessages, socket]);
 
   return (
     <div className="h-screen bg-base-200">
