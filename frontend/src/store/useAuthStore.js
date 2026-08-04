@@ -89,14 +89,15 @@ export const useAuthStore = create((set, get) => ({
     const socket = io(BASE_URL, {
       withCredentials: true,
       transports: ["websocket"],
+      autoConnect: false,
     });
-    socket.connect();
-
-    set({ socket: socket });
 
     socket.on("getOnlineUsers", (userIds) => {
       set({ onlineUsers: userIds });
     });
+
+    socket.connect();
+    set({ socket: socket });
   },
   disconnectSocket: () => {
   const { socket } = get();
