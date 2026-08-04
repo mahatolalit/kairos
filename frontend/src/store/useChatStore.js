@@ -167,6 +167,7 @@ export const useChatStore = create((set, get) => ({
     // Clean up any old listeners to prevent duplicates
     socket.off("newMessage");
     socket.off("messagesSeen");
+    socket.off("messagesDelivered");
 
     socket.on("newMessage", (newMessage) => {
       const { selectedUser, messages, users } = get();
@@ -236,6 +237,23 @@ export const useChatStore = create((set, get) => ({
         });
       }
     });
+
+    socket.on("messagesDelivered", ({ receiverId }) => {
+      const authUser = useAuthStore.getState().authUser;
+      const { selectedUser, messages } = get();
+      if (
+        selectedUser &&
+        (String(selectedUser._id) === String(receiverId))
+      ) {
+        set({
+          messages: messages.map((msg) =>
+            String(msg.senderId) === String(authUser?._id) && !msg.isSeen
+              ? { ...msg, isDelivered: true, status: "delivered" }
+              : msg
+          ),
+        });
+      }
+    });
   },
 
   unsubscribeFromMessages: () => {
@@ -243,6 +261,7 @@ export const useChatStore = create((set, get) => ({
     if (socket) {
       socket.off("newMessage");
       socket.off("messagesSeen");
+      socket.off("messagesDelivered");
     }
   },
 

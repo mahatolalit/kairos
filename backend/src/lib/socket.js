@@ -2,6 +2,7 @@ import { Server } from "socket.io";
 import http from "http";
 import express from "express";
 import jwt from "jsonwebtoken";
+import Message from "../models/message.model.js";
 
 const app = express();
 const server = http.createServer(app);
@@ -51,7 +52,30 @@ io.on("connection", (socket) => {
   console.log("A user connected", socket.id);
 
   const userId = socket.userId;
-  if (userId) userSocketMap[userId.toString()] = socket.id;
+  if (userId) {
+    userSocketMap[userId.toString()] = socket.id;
+
+    // Automatically mark pending messages as delivered when a user connects
+    (async () => {
+      try {
+        const senders = await Message.distinct("senderId", { receiverId: userId, isDelivered: false });
+        if (senders.length > 0) {
+          await Message.updateMany(
+            { receiverId: userId, isDelivered: false },
+            { $set: { isDelivered: true } }
+          );
+          senders.forEach((senderId) => {
+            const senderSocketId = userSocketMap[senderId.toString()];
+            if (senderSocketId) {
+              io.to(senderSocketId).emit("messagesDelivered", { receiverId: userId });
+            }
+          });
+        }
+      } catch (error) {
+        console.error("Error updating message delivery status:", error);
+      }
+    })();
+  }
 
   // io.emit() is used to send events to all the connected clients
   io.emit("getOnlineUsers", Object.keys(userSocketMap));
