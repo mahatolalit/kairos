@@ -58,7 +58,7 @@ io.on("connection", (socket) => {
     // Automatically mark pending messages as delivered when a user connects
     (async () => {
       try {
-        const senders = await Message.distinct("senderId", { receiverId: userId, isDelivered: false });
+        const senders = await Message.find({ receiverId: userId, isDelivered: false }).distinct("senderId");
         if (senders.length > 0) {
           await Message.updateMany(
             { receiverId: userId, isDelivered: false },
