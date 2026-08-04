@@ -24,7 +24,9 @@ const __dirname = path.resolve();
 
 app.use(
   cors({
-    origin: ["http://localhost:5173", "http://localhost:5001"],
+    origin: process.env.NODE_ENV === "production" 
+      ? process.env.CLIENT_URL || true 
+      : ["http://localhost:5173", "http://localhost:5001"],
     credentials: true,
   })
 );
