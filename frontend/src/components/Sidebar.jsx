@@ -2,12 +2,11 @@ import { useEffect, useState } from "react";
 import { useChatStore } from "../store/useChatStore";
 import { useAuthStore } from "../store/useAuthStore";
 import SidebarSkeleton from "./skeletons/SidebarSkeleton";
-import { Users } from "lucide-react";
+import { Users, Check, CheckCheck, Image } from "lucide-react";
 
 const Sidebar = () => {
   const { getUsers, users, selectedUser, setSelectedUser, isUsersLoading } = useChatStore();
-
-  const { onlineUsers } = useAuthStore();
+  const { onlineUsers, authUser } = useAuthStore();
   const [showOnlineOnly, setShowOnlineOnly] = useState(false);
 
   useEffect(() => {
@@ -72,11 +71,36 @@ const Sidebar = () => {
             </div>
 
             {/* User info */}
-            <div className="block text-left min-w-0">
+            <div className="block text-left min-w-0 flex-1">
               <div className="font-medium truncate">{user.fullName}</div>
-              <div className="text-sm text-zinc-400">
-                {onlineUsers.includes(user._id) ? "Online" : "Offline"}
-              </div>
+              {user.lastMessage ? (
+                <div className="text-sm text-zinc-400 truncate flex items-center gap-1">
+                  {String(user.lastMessage.senderId) === String(authUser?._id) && (
+                    <span className="shrink-0">
+                      {user.lastMessage.isSeen ? (
+                        <CheckCheck className="size-3.5 text-sky-400 drop-shadow-[0_0_2px_rgba(56,189,248,0.8)] stroke-[2.5]" />
+                      ) : user.lastMessage.isDelivered ? (
+                        <CheckCheck className="size-3.5 text-base-content/50 stroke-[2.5]" />
+                      ) : (
+                        <Check className="size-3.5 text-base-content/50 stroke-[2.5]" />
+                      )}
+                    </span>
+                  )}
+                  {user.lastMessage.image && (
+                    <span className="flex items-center gap-1 shrink-0">
+                      <Image className="size-3" />
+                      {!user.lastMessage.text && "Photo"}
+                    </span>
+                  )}
+                  {user.lastMessage.text && (
+                    <span className="truncate">{user.lastMessage.text}</span>
+                  )}
+                </div>
+              ) : (
+                <div className="text-sm text-zinc-400">
+                  {onlineUsers.includes(user._id) ? "Online" : "No messages yet"}
+                </div>
+              )}
             </div>
           </button>
         ))}

@@ -61,7 +61,8 @@ export const getUsersForSidebar = async (req, res) => {
           },
           unreadCount: {
             $ifNull: [{ $first: "$unreadMessages.unread" }, 0]
-          }
+          },
+          lastMessage: { $first: "$lastMessage" }
         }
       },
       {
@@ -70,7 +71,6 @@ export const getUsersForSidebar = async (req, res) => {
       {
         $project: {
           password: 0,
-          lastMessage: 0,
           lastMessageTime: 0,
           unreadMessages: 0
         }

@@ -1,6 +1,7 @@
+import { Link } from "react-router-dom";
 import { THEMES } from "../constants";
 import { useThemeStore } from "../store/useThemeStore";
-import { Send } from "lucide-react";
+import { Send, ArrowLeft } from "lucide-react";
 
 const PREVIEW_MESSAGES = [
   { id: 1, content: "Hey! How's it going?", isSent: false },
@@ -13,9 +14,14 @@ const SettingsPage = () => {
   return (
     <div className="h-screen container mx-auto px-4 pt-20 max-w-5xl">
       <div className="space-y-6">
-        <div className="flex flex-col gap-1">
-          <h2 className="text-lg font-semibold">Theme</h2>
-          <p className="text-sm text-base-content/70">Choose a theme for your chat interface</p>
+        <div className="flex items-center gap-3">
+          <Link to="/" className="btn btn-sm btn-ghost btn-circle">
+            <ArrowLeft className="size-5" />
+          </Link>
+          <div className="flex flex-col gap-1">
+            <h2 className="text-lg font-semibold">Settings</h2>
+            <p className="text-sm text-base-content/70">Choose a theme for your chat interface</p>
+          </div>
         </div>
 
         <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-2">

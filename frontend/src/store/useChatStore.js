@@ -80,6 +80,7 @@ export const useChatStore = create((set, get) => ({
       const userIndex = newUsers.findIndex((u) => u._id === selectedUser._id);
       if (userIndex > -1) {
         const [user] = newUsers.splice(userIndex, 1);
+        user.lastMessage = tempMessage;
         newUsers.unshift(user);
       }
       return { messages: [...state.messages, tempMessage], users: newUsers };
@@ -105,7 +106,11 @@ export const useChatStore = create((set, get) => ({
             }
           : msg
       );
-      set({ messages: updatedMessages });
+      const finalMessage = updatedMessages.find(m => m._id === res.data._id);
+      set({ 
+        messages: updatedMessages,
+        users: get().users.map(u => u._id === selectedUser._id ? { ...u, lastMessage: finalMessage } : u)
+      });
     } catch (error) {
       console.error("SendMessage error:", error);
       const failedMessages = get().messages.map((msg) =>
@@ -177,6 +182,7 @@ export const useChatStore = create((set, get) => ({
       const userIndex = newUsers.findIndex((u) => u._id === newMessage.senderId);
       if (userIndex > -1) {
         const [user] = newUsers.splice(userIndex, 1);
+        user.lastMessage = newMessage;
         newUsers.unshift(user);
       }
 
@@ -223,7 +229,15 @@ export const useChatStore = create((set, get) => ({
 
     socket.on("messagesSeen", ({ senderId, receiverId }) => {
       const authUser = useAuthStore.getState().authUser;
-      const { selectedUser, messages } = get();
+      const { selectedUser, messages, users } = get();
+
+      const newUsers = users.map(u => {
+        if (String(u._id) === String(receiverId) && u.lastMessage && String(u.lastMessage.senderId) === String(authUser?._id)) {
+           return { ...u, lastMessage: { ...u.lastMessage, isSeen: true, isDelivered: true, status: "seen" } };
+        }
+        return u;
+      });
+
       if (
         selectedUser &&
         (String(selectedUser._id) === String(senderId) || String(selectedUser._id) === String(receiverId))
@@ -234,13 +248,24 @@ export const useChatStore = create((set, get) => ({
               ? { ...msg, isSeen: true, isDelivered: true, status: "seen" }
               : msg
           ),
+          users: newUsers
         });
+      } else {
+        set({ users: newUsers });
       }
     });
 
     socket.on("messagesDelivered", ({ receiverId }) => {
       const authUser = useAuthStore.getState().authUser;
-      const { selectedUser, messages } = get();
+      const { selectedUser, messages, users } = get();
+
+      const newUsers = users.map(u => {
+        if (String(u._id) === String(receiverId) && u.lastMessage && String(u.lastMessage.senderId) === String(authUser?._id) && !u.lastMessage.isSeen) {
+           return { ...u, lastMessage: { ...u.lastMessage, isDelivered: true, status: "delivered" } };
+        }
+        return u;
+      });
+
       if (
         selectedUser &&
         (String(selectedUser._id) === String(receiverId))
@@ -251,7 +276,10 @@ export const useChatStore = create((set, get) => ({
               ? { ...msg, isDelivered: true, status: "delivered" }
               : msg
           ),
+          users: newUsers
         });
+      } else {
+        set({ users: newUsers });
       }
     });
   },

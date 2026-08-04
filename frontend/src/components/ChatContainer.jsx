@@ -49,51 +49,40 @@ const ChatContainer = () => {
 
   const renderStatusTicks = (message) => {
     if (message.status === "sending") {
-      return (
-        <span className="bg-primary-content/20 text-primary-content rounded-full p-0.5 flex items-center justify-center">
-          <Loader2 className="size-3 animate-spin" />
-        </span>
-      );
+      return <Loader2 className="size-3 animate-spin opacity-50" />;
     }
     if (message.status === "failed") {
       return (
         <button
           onClick={() => retrySendMessage(message)}
-          className="flex items-center gap-1 text-white hover:text-white transition-colors cursor-pointer bg-red-600 px-1.5 py-0.5 rounded-full font-bold shadow-xs"
+          className="flex items-center text-red-400 hover:text-red-300 transition-colors cursor-pointer"
           title="Failed to deliver. Click to retry"
         >
-          <AlertCircle className="size-3 text-white" />
-          <span className="text-[9px] font-bold">Retry</span>
+          <AlertCircle className="size-3.5" />
         </button>
       );
     }
     if (message.isSeen || message.status === "seen") {
       return (
-        <span
-          className="bg-primary-content text-emerald-600 font-black rounded-full px-1 py-0.5 flex items-center shadow-xs"
-          title="Seen"
-        >
-          <CheckCheck className="size-3.5 stroke-[2.5]" />
-        </span>
+        <CheckCheck 
+          className="size-3.5 text-sky-400 drop-shadow-[0_0_3px_rgba(56,189,248,0.8)] stroke-[2.5]" 
+          title="Seen" 
+        />
       );
     }
     if (message.isDelivered || message.status === "delivered") {
       return (
-        <span
-          className="bg-primary-content/90 text-primary font-extrabold rounded-full px-1 py-0.5 flex items-center shadow-xs"
-          title="Delivered"
-        >
-          <CheckCheck className="size-3.5 stroke-[2.5]" />
-        </span>
+        <CheckCheck 
+          className="size-3.5 text-primary-content/50 stroke-[2.5]" 
+          title="Delivered" 
+        />
       );
     }
     return (
-      <span
-        className="bg-primary-content/90 text-primary font-extrabold rounded-full px-1 py-0.5 flex items-center shadow-xs"
-        title="Sent to server"
-      >
-        <Check className="size-3.5 stroke-[2.5]" />
-      </span>
+      <Check 
+        className="size-3.5 text-primary-content/50 stroke-[2.5]" 
+        title="Sent to server" 
+      />
     );
   };
 
