@@ -1,10 +1,11 @@
 import { useChatStore } from "../store/useChatStore";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Loader2, AlertCircle, Check, CheckCheck } from "lucide-react";
 
 import ChatHeader from "./ChatHeader";
 import MessageInput from "./MessageInput";
 import TypingIndicator from "./TypingIndicator";
+import ImageViewer from "./ImageViewer";
 import MessageSkeleton from "./skeletons/MessageSkeleton";
 import { useAuthStore } from "../store/useAuthStore";
 import { formatMessageTime, formatMessageDateHeader } from "../lib/utils";
@@ -24,6 +25,7 @@ const ChatContainer = () => {
   const { authUser } = useAuthStore();
   const messageEndRef = useRef(null);
   const scrollContainerRef = useRef(null);
+  const [selectedImage, setSelectedImage] = useState(null);
 
   useEffect(() => {
     if (selectedUser?._id) {
@@ -147,7 +149,8 @@ const ChatContainer = () => {
                     <img
                       src={message.image}
                       alt="Attachment"
-                      className="sm:max-w-[220px] rounded-md mb-2 object-cover"
+                      className="sm:max-w-[220px] rounded-md mb-2 object-cover cursor-pointer hover:opacity-90 transition-opacity"
+                      onClick={() => setSelectedImage(message.image)}
                       onLoad={() => {
                         if (index === messages.length - 1 && scrollContainerRef.current) {
                           scrollContainerRef.current.scrollTo({
@@ -178,6 +181,13 @@ const ChatContainer = () => {
       </div>
 
       <MessageInput />
+
+      {selectedImage && (
+        <ImageViewer 
+          imageUrl={selectedImage} 
+          onClose={() => setSelectedImage(null)} 
+        />
+      )}
     </div>
   );
 };
