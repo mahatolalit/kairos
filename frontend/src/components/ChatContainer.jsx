@@ -21,6 +21,7 @@ const ChatContainer = () => {
   } = useChatStore();
   const { authUser } = useAuthStore();
   const messageEndRef = useRef(null);
+  const scrollContainerRef = useRef(null);
 
   useEffect(() => {
     if (selectedUser?._id) {
@@ -32,7 +33,12 @@ const ChatContainer = () => {
   useEffect(() => {
     if (messageEndRef.current && messages) {
       setTimeout(() => {
-        messageEndRef.current?.scrollIntoView({ behavior: "smooth" });
+        if (scrollContainerRef.current) {
+          scrollContainerRef.current.scrollTo({
+            top: scrollContainerRef.current.scrollHeight,
+            behavior: "smooth",
+          });
+        }
       }, 100);
     }
   }, [messages]);
@@ -92,7 +98,7 @@ const ChatContainer = () => {
     <div className="flex-1 flex flex-col overflow-hidden">
       <ChatHeader />
 
-      <div className="flex-1 overflow-y-auto p-4 space-y-0.5">
+      <div ref={scrollContainerRef} className="flex-1 overflow-y-auto p-4 space-y-0.5">
         {messages.map((message, index) => {
           const isSentByMe = message.senderId === authUser._id;
           const dateHeader = formatMessageDateHeader(message.createdAt);
@@ -141,8 +147,11 @@ const ChatContainer = () => {
                       alt="Attachment"
                       className="sm:max-w-[220px] rounded-md mb-2 object-cover"
                       onLoad={() => {
-                        if (index === messages.length - 1) {
-                          messageEndRef.current?.scrollIntoView({ behavior: "smooth" });
+                        if (index === messages.length - 1 && scrollContainerRef.current) {
+                          scrollContainerRef.current.scrollTo({
+                            top: scrollContainerRef.current.scrollHeight,
+                            behavior: "smooth",
+                          });
                         }
                       }}
                     />
