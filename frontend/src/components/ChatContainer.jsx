@@ -71,7 +71,7 @@ const ChatContainer = () => {
     if (message.isSeen || message.status === "seen") {
       return (
         <CheckCheck 
-          className="size-3.5 text-sky-400 drop-shadow-[0_0_3px_rgba(56,189,248,0.8)] stroke-[2.5]" 
+          className="size-3.5 text-sky-400 drop-shadow-[0_0_3px_rgba(56,189,248,0.8)] stroke-[2.5] animate-tick-spin" 
           title="Seen" 
         />
       );

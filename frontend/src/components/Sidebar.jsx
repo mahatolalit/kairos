@@ -78,7 +78,7 @@ const Sidebar = () => {
                   {String(user.lastMessage.senderId) === String(authUser?._id) && (
                     <span className="shrink-0">
                       {user.lastMessage.isSeen ? (
-                        <CheckCheck className="size-3.5 text-sky-400 drop-shadow-[0_0_2px_rgba(56,189,248,0.8)] stroke-[2.5]" />
+                        <CheckCheck className="size-3.5 text-sky-400 drop-shadow-[0_0_2px_rgba(56,189,248,0.8)] stroke-[2.5] animate-tick-spin" />
                       ) : user.lastMessage.isDelivered ? (
                         <CheckCheck className="size-3.5 text-base-content/50 stroke-[2.5]" />
                       ) : (
