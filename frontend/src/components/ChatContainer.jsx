@@ -4,6 +4,7 @@ import { Loader2, AlertCircle, Check, CheckCheck } from "lucide-react";
 
 import ChatHeader from "./ChatHeader";
 import MessageInput from "./MessageInput";
+import TypingIndicator from "./TypingIndicator";
 import MessageSkeleton from "./skeletons/MessageSkeleton";
 import { useAuthStore } from "../store/useAuthStore";
 import { formatMessageTime, formatMessageDateHeader } from "../lib/utils";
@@ -18,6 +19,7 @@ const ChatContainer = () => {
     unsubscribeFromMessages,
     retrySendMessage,
     markMessagesAsSeen,
+    typingUsers,
   } = useChatStore();
   const { authUser } = useAuthStore();
   const messageEndRef = useRef(null);
@@ -41,7 +43,7 @@ const ChatContainer = () => {
         }
       }, 100);
     }
-  }, [messages]);
+  }, [messages, typingUsers]);
 
   if (isMessagesLoading) {
     return (
@@ -169,6 +171,9 @@ const ChatContainer = () => {
             </div>
           );
         })}
+        {selectedUser && typingUsers.includes(selectedUser._id) && (
+          <TypingIndicator />
+        )}
         <div ref={messageEndRef} />
       </div>
 

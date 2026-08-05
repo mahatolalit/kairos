@@ -8,7 +8,7 @@ export default function MessageInput() {
   const [text, setText] = useState("");
   const [file, setFile] = useState(null);
   const [preview, setPreview] = useState(null);
-  const { sendMessage } = useChatStore();
+  const { sendMessage, sendTypingEvent } = useChatStore();
 
   /* ---------- client‑side validation & preview ---------- */
   const onSelectFile = (e) => {
@@ -45,6 +45,7 @@ export default function MessageInput() {
 
     setText("");
     resetImage();
+    sendTypingEvent(false);
   };
 
   return (
@@ -68,7 +69,10 @@ export default function MessageInput() {
             type="text"
             placeholder="Type a message…"
             value={text}
-            onChange={(e) => setText(e.target.value)}
+            onChange={(e) => {
+              setText(e.target.value);
+              sendTypingEvent();
+            }}
             className="w-full input input-bordered rounded-lg input-sm sm:input-md"
           />
 

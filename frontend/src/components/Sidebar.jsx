@@ -5,7 +5,7 @@ import SidebarSkeleton from "./skeletons/SidebarSkeleton";
 import { Users, Check, CheckCheck, Image } from "lucide-react";
 
 const Sidebar = () => {
-  const { getUsers, users, selectedUser, setSelectedUser, isUsersLoading } = useChatStore();
+  const { getUsers, users, selectedUser, setSelectedUser, isUsersLoading, typingUsers } = useChatStore();
   const { onlineUsers, authUser } = useAuthStore();
   const [showOnlineOnly, setShowOnlineOnly] = useState(false);
 
@@ -73,7 +73,11 @@ const Sidebar = () => {
             {/* User info */}
             <div className="block text-left min-w-0 flex-1">
               <div className="font-medium truncate">{user.fullName}</div>
-              {user.lastMessage ? (
+              {typingUsers.includes(user._id) ? (
+                <div className="text-sm text-primary animate-pulse italic">
+                  typing...
+                </div>
+              ) : user.lastMessage ? (
                 <div className="text-sm text-zinc-400 truncate flex items-center gap-1">
                   {String(user.lastMessage.senderId) === String(authUser?._id) && (
                     <span className="shrink-0">

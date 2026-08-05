@@ -4,6 +4,7 @@ import { axiosInstance } from "../lib/axios";
 import { useAuthStore } from "./useAuthStore";
 import { showNotification } from "../lib/utils";
 
+let typingTimeout = null;
 
 export const useChatStore = create((set, get) => ({
   messages: [],
@@ -11,6 +12,7 @@ export const useChatStore = create((set, get) => ({
   selectedUser: null,
   isUsersLoading: false,
   isMessagesLoading: false,
+  typingUsers: [],
 
   getUsers: async () => {
     set({ isUsersLoading: true });
@@ -173,6 +175,20 @@ export const useChatStore = create((set, get) => ({
     socket.off("newMessage");
     socket.off("messagesSeen");
     socket.off("messagesDelivered");
+    socket.off("userTyping");
+    socket.off("userStoppedTyping");
+
+    socket.on("userTyping", ({ senderId }) => {
+      set((state) => ({
+        typingUsers: [...new Set([...state.typingUsers, senderId])],
+      }));
+    });
+
+    socket.on("userStoppedTyping", ({ senderId }) => {
+      set((state) => ({
+        typingUsers: state.typingUsers.filter((id) => id !== senderId),
+      }));
+    });
 
     socket.on("newMessage", (newMessage) => {
       const { selectedUser, messages, users } = get();
@@ -290,6 +306,26 @@ export const useChatStore = create((set, get) => ({
       socket.off("newMessage");
       socket.off("messagesSeen");
       socket.off("messagesDelivered");
+      socket.off("userTyping");
+      socket.off("userStoppedTyping");
+    }
+  },
+
+  sendTypingEvent: (isTyping = true) => {
+    const { selectedUser } = get();
+    const socket = useAuthStore.getState().socket;
+    if (!selectedUser || !socket) return;
+
+    if (isTyping) {
+      socket.emit("typing", { receiverId: selectedUser._id });
+
+      if (typingTimeout) clearTimeout(typingTimeout);
+      typingTimeout = setTimeout(() => {
+        socket.emit("stopTyping", { receiverId: selectedUser._id });
+      }, 3000);
+    } else {
+      socket.emit("stopTyping", { receiverId: selectedUser._id });
+      if (typingTimeout) clearTimeout(typingTimeout);
     }
   },
 
